@@ -8,11 +8,14 @@ def receitas():
         st.session_state.vendas = []
 
     with st.form("form_venda"):
-        cliente = st.text_input("Nome do cliente")
-        produto = st.text_input("Nome do produto")
-        quantidade = st.number_input("Quantidade", min_value=0, step=1)
-        preco = st.number_input("Preço", min_value=0.0, step=0.1, format="%.2f")
-        data_venda = st.date_input("Data da venda", value=date.today())
+        co1, co2 = st.columns(2)
+        with co1:
+            cliente = st.text_input("Nome do cliente")
+            produto = st.text_input("Nome do produto")
+            quantidade = st.number_input("Quantidade", min_value=0, step=1)
+        with co2:
+            preco = st.number_input("Preço", min_value=0.0, step=0.1, format="%.2f")
+            data_venda = st.date_input("Data da venda", value=date.today())
 
         submitted = st.form_submit_button("Registrar venda")
 
