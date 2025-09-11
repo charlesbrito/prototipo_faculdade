@@ -1,8 +1,9 @@
 import streamlit as st
 from datetime import date
-from weasyprint import HTML
-import base64
+from fpdf import FPDF
 from io import BytesIO
+import base64
+
 
 def nfe():
     st.title("Gere sua nota fiscal")
@@ -28,53 +29,53 @@ def nfe():
         gerar = st.form_submit_button("Gerar Nota Fiscal")
 
         if gerar:
-            html_content = f"""
-            <html>
-                <head>
-                    <title>Relatório de Cadastro</title>
-                    <style>
-                        body {{
-                            font-family: Arial, sans-serif;
-                            margin: 20px;
-                        }}
-                        h1 {{
-                            color: #4CAF50;
-                        }}
-                        .campo {{
-                            margin-bottom: 10px;
-                        }}
-                        .campo b {{
-                            color: #333;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <h1>Relatório de Cadastro</h1>
-                    <div class="campo"><b>Nome:</b> {nome}</div>
-                    <div class="campo"><b>CPF/CNPJ:</b> {cpf_cnpj}</div>
-                    <div class="campo"><b>Endereço:</b> {endereco}</div>
-                    <div class="campo"><b>Produto:</b> {produto}</div>
-                    <div class="campo"><b>Valor do produto:</b> {valor_produto}</div>
-                    <div class="campo"><b>Impostos:</b> {impostos}</div>
-                    <div class="campo"><b>Valor final:</b> {valor_final}</div>
-                    <div class="campo"><b>Forma de pagamento:</b> {forma_pagamento}</div>
-                </body>
-            </html>
-            """
-
-            # Gerando o PDF
-            pdf = HTML(string=html_content).write_pdf()
-
-            # Criando o link de download
-            pdf_bytes = BytesIO(pdf)
-            pdf_bytes.seek(0)
-            b64_pdf = base64.b64encode(pdf_bytes.read()).decode()
-
-            href = f'<a href="data:application/octet-stream;base64,{b64_pdf}" download="nota_fiscal_{nome}.pdf">Clique aqui para baixar o PDF</a>'
-            st.markdown(href, unsafe_allow_html=True)
-
             
-       
+            dados = {
+                "Nome": nome,
+                "CPF/CNPJ": cpf_cnpj,
+                "Endereço": endereco,
+                "Produto": produto,
+                "Valor do produto": valor_produto,
+                "Impostos": impostos,
+                "Valor final": valor_final,
+                "Forma de pagamento": forma_pagamento
+            }
+
+            pdf = FPDF()
+            pdf.add_page()
+
+            # Cabeçalho
+            pdf.set_font("Arial", "B", 16)
+            pdf.cell(0, 10, "Relatório de Cadastro", ln=True, align="C")
+            pdf.ln(10)
+
+            # Dados do formulário
+            pdf.set_font("Arial", size=12)
+            for campo, valor in dados.items():
+                pdf.multi_cell(0, 8, f"{campo}: {valor}")
+                pdf.ln(2)
+
+            # Rodapé
+            pdf.set_y(-20)
+            pdf.set_font("Arial", "I", 8)
+            pdf.cell(0, 10, "Gerado pelo sistema Streamlit", align="C")
+
+            # Retornar PDF em bytes
+            pdf_bytes = pdf.output(dest='S').encode('latin-1')
+            b64_pdf = BytesIO(pdf_bytes)
+
+            st.session_state['pdf_buffer'] = b64_pdf
+
+
+if 'pdf_buffer' in st.session_state:
+    st.download_button(
+        label="📥 Baixar PDF",
+        data=st.session_state['pdf_buffer'],
+        file_name=f"nota_fiscal.pdf",
+        mime="application/pdf"
+    )
+                
+        
             
        
     
